@@ -1,0 +1,7 @@
+# emacs 
+*~
+# thrift
+src/thrift/gen-nodejs/
+
+# npm module
+node_modules/
