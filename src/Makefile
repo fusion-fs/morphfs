@@ -7,4 +7,4 @@ server: all
 	cd thrift; ${NODE} server.js
 
 client: all
-	${NODE} client.js
+	cd thrift; ${NODE} client.js
