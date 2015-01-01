@@ -1,12 +1,13 @@
 var f4js = require('fuse4js');
 var fs = require('fs');
 var pth = require('path');
-var srcRoot = '/';   // The root of the file system we are morphing
+var srcRoot = '/';
 var options = {};  // See parseArgs()
 
 var redis = require("redis"),
     client = redis.createClient();
 
+var helper = require('./helper.js')
 
 var errnoMap = {
 EPERM: 1,
@@ -214,6 +215,7 @@ init: init,
 destroy: destroy,
 statfs: statfs
 };
+
 
 function usage() {
     console.log();
