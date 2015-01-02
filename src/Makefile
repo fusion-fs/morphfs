@@ -10,8 +10,8 @@ cpp_thrift:
 js_thrift:
 	cd thrift;${THRIFT} --gen js:node rpc.thrift
 
-test_thrift_server: js_thrift
-	cd thrift; ${NODE} server.js
+test_thrift_osd: js_thrift
+	cd thrift; ${NODE} osd.js
 
 test_thrift_client: js_thrift
 	cd thrift; ${NODE} client.js
