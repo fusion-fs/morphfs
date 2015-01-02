@@ -54,6 +54,7 @@ int main(int argc, char *argv[]) {
     ulong port = 9999;
     char *config = "config.json";
     int debug = 0;
+
     while (1)
     {
         static struct option long_options[] = {
@@ -101,7 +102,8 @@ int main(int argc, char *argv[]) {
 
         }
     }
-    printf("rpc port %lu mount %s osd config %s\n", port, mount, config);
+    printf("rpc port %lu mount %s osd config %s\n", 
+	   port, mount, config);
     constructOSD(config);
     printf("mounting file system...\n");
             

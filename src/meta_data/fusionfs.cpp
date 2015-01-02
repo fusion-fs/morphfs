@@ -3,6 +3,7 @@
 #include <boost/lexical_cast.hpp>
 
 using namespace boost;
+using namespace std;
 
 FusionFS* FusionFS::_instance = NULL;
 
@@ -401,7 +402,8 @@ int FusionFS::Access(const char *path, int mode)
 }
 
 void* FusionFS::Init(struct fuse_conn_info *conn) {
-    _conn = connection::create();
+    //FIXME: init db cluster
+    _conn = connection::create(::get_db(0));
     return 0;
 }
 
