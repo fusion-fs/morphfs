@@ -6,6 +6,7 @@ extern "C" {
     extern int read_from_client(int fd, const char *path, 
                                 ulong offset, ulong size, 
                                 char *data);
+    extern int mkdir_on_client(int fd, const char *path, uint mode);
 }
 #else
 extern int find_client(const char *path);
@@ -13,4 +14,5 @@ extern int write_to_client(int fd, const char *path, const char *data, ulong off
 extern int read_from_client(int fd, const char *path, 
                             ulong offset, ulong size, 
                             char *data);
+extern int mkdir_on_client(int fd, const char *path, uint mode);
 #endif

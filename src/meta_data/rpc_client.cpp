@@ -76,5 +76,19 @@ extern "C" {
             return res.status;
     }
 
+    int mkdir_on_client(int fd, const char *path, uint mode)
+    {
+        RPCClient* client = get_client(fd);
+        MkdirArg arg;
+        arg.__set_key(path);
+        arg.__set_mode(mode);
+        client->send_mkdir(arg);
+        MkdirRes res;
+
+        //FIXME: catch exception
+        client->recv_mkdir(res);
+        fprintf(stderr, "read recv: status %d\n", res.status);
+	return res.status;
+    }
 }
 #endif

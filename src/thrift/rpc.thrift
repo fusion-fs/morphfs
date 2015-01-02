@@ -20,6 +20,17 @@ struct ShowRes
     3:optional list<string> data,
 }
 
+struct MkdirArg
+{
+	1:string key,
+	2:i32    mode,
+}
+
+struct MkdirRes
+{
+	1:i32   status,
+}
+
 struct ReadArg
 {
 	1:string key,
@@ -53,4 +64,5 @@ service RPC
   ShowRes show (1:ShowArg arg),
   ReadRes read (1:ReadArg arg),
   WriteRes write (1:WriteArg arg),
+  MkdirRes mkdir (1:MkdirArg arg),
 }

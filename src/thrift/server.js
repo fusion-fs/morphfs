@@ -16,6 +16,13 @@ var server = thrift.createServer(RPC, {
             result(null, test_showRes);
         },
 
+    mkdir: function(arg, result) {
+            console.log("mkdir:", arg.key);
+            var fd = fs.mkdirSync(root + arg.key, arg.mode);
+            var mkdirRes = new ttypes.MkdirRes({status: 0});
+            result(null, mkdirRes);
+        },
+
     read: function(arg, result) {
             console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len);
             var path = root + arg.key;

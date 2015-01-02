@@ -156,7 +156,44 @@ int FusionFS::Mknod(const char *path, mode_t mode, dev_t dev) {
 
 int FusionFS::Mkdir(const char *path, mode_t mode) {
     fprintf(stderr,"**mkdir(path=%s, mode=%d)\n", path, (int)mode);
-    return 0;
+    if (!path) {
+        return EINVAL;
+    }
+    fprintf(stderr,"create(path=%s)\n", path);    
+    int inode = Path2Inode(path);
+    if (!inode) {
+	int fd = find_client(path);
+	if (fd < 0) {
+	    return -ENOENT;
+	}
+
+	int ret = mkdir_on_client(fd, path, mode);
+	if (ret) {
+	    fprintf(stderr, "failed to write, ret %d\n", ret);
+	    return -EIO;
+	}
+
+        GetNewInode(inode);
+        SetInode(path, inode);
+
+        // create dentry
+        struct stat statbuf;
+        memset(&statbuf, 0, sizeof(struct stat));
+        statbuf.st_ino = inode;
+        statbuf.st_mtime = statbuf.st_ctime = statbuf.st_atime = time(NULL);
+        statbuf.st_mode = mode | S_IFDIR;
+        statbuf.st_uid = fuse_get_context()->uid;
+        statbuf.st_gid = fuse_get_context()->gid;
+        statbuf.st_nlink = 1;
+        SetAttr(statbuf);
+
+        // add to parent
+        string parent = GetParent(path);
+        string file = GetFile(path);
+        AddEntry(parent, file);
+	return 0;
+    }
+    return EEXIST;
 }
 
 int FusionFS::Unlink(const char *path) {
