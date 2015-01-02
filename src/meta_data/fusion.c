@@ -52,6 +52,8 @@ int main(int argc, char *argv[]) {
 
     int c;
     ulong port = 9999;
+    char *config = "config.json";
+    int debug = 0;
     while (1)
     {
         static struct option long_options[] = {
@@ -60,12 +62,13 @@ int main(int argc, char *argv[]) {
             {"mount", required_argument, 0, 'm'},
             {"namespace", required_argument, 0, 'n'},
             {"port", required_argument, 0, 'p'},
+            {"config", required_argument, 0, 'c'},
             {"version", no_argument, 0, 'v'},
             {0, 0, 0, 0}
         };
         int option_index = 0;
 
-        c = getopt_long(argc, argv, "m:n:p:dv", long_options,
+        c = getopt_long(argc, argv, "m:n:p:c:dv", long_options,
                         &option_index);
 
         if (c == -1)
@@ -86,13 +89,20 @@ int main(int argc, char *argv[]) {
         case 'p':
             port = atoi(optarg);
             break;
+	case 'c':
+	    config = strdup(optarg);
+	    break;
+	case 'd':
+	    debug = 1;
+	    break;
         default:
             printf("usage: %s mountpoint\n", argv[0]);
             exit(1);
 
         }
     }
-    printf("rpc port %lu mount %s\n", port, mount);
+    printf("rpc port %lu mount %s osd config %s\n", port, mount, config);
+    constructOSD(config);
     printf("mounting file system...\n");
             
     set_Namespace(ns?ns:NS);
@@ -101,11 +111,12 @@ int main(int argc, char *argv[]) {
         "fuse-fusionfs", mount,
         "-o", "allow_other",
         "-o", "nonempty",
-        "-o", "debug",
         "-f",
+        "-o", "debug",
         NULL
     };
-    int fuse_argc = 9;
+    int fuse_argc = 7;
+    if (debug) fuse_argc = 9;
 
     fuse_stat = fuse_main(fuse_argc, fuse_argv, &fusionfs_op, NULL);
     fprintf(stderr, "fuse_main returned %d\n", fuse_stat);

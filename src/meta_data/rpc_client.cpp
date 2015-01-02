@@ -2,16 +2,24 @@
 #include <thrift/protocol/TBinaryProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
-
+#include <vector>
 #ifdef __cplusplus
 extern "C" {
     using namespace ::apache::thrift;
     using namespace ::apache::thrift::protocol;
     using namespace ::apache::thrift::transport;
-
     using boost::shared_ptr;
-
+    using namespace std;
+    typedef pair<string, RPCClient *> OSDPair;
+    vector<OSDPair> OSDVector;
     
+    int add_client(const char *host)
+    {
+	OSDPair p = make_pair(host, (RPCClient *)NULL);
+	OSDVector.insert(OSDVector.begin(), p);
+	return 0;
+    }
+
     int find_client(const char *path) 
     { 
         return 0; 
@@ -19,14 +27,26 @@ extern "C" {
 
     RPCClient* get_client(int fd)
     {
-        //FIXME: get client from vector
-        static RPCClient *client = NULL;
-       
+	OSDPair pair = OSDVector[fd];
+        RPCClient *client = pair.second;
+	
         if (!client) {
-            shared_ptr<TSocket> socket(new TSocket("127.0.0.1", 9090));
+	    string osd = pair.first;
+	    string host = osd;
+	    ulong port = 9090;
+
+	    unsigned found = osd.find_last_of(":");
+	    if (found) {
+		host = osd.substr(0,found);
+		port = atoi(osd.substr(found + 1).c_str());
+	    }
+	    fprintf(stderr, "create rpc to %s:%lu\n", host.c_str(), port);
+
+            shared_ptr<TSocket> socket(new TSocket(host, port));
             shared_ptr<TTransport> transport(new TBufferedTransport(socket));
             shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
             client = new RPCClient(protocol);
+	    pair.second = client;
             transport->open();
         }
         return client;

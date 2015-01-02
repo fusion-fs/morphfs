@@ -27,7 +27,7 @@ add_definitions(-D_FILE_OFFSET_BITS=64)
 
 #add_subdirectory(redis3m)
 
-set(CPPSRCS cppwrapper.cpp fusionfs.cpp rpc_client.cpp gen-cpp/rpc_types.cpp
+set(CPPSRCS cppwrapper.cpp fusionfs.cpp rpc_client.cpp config.cpp gen-cpp/rpc_types.cpp
 gen-cpp/rpc_constants.cpp gen-cpp/RPC.cpp)
 set(CSRCS fusion.c)
 add_executable(fusionfs ${CSRCS} ${CPPSRCS})
