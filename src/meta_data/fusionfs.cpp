@@ -352,7 +352,9 @@ int FusionFS::Create(const char *path, mode_t mode, struct fuse_file_info *fileI
         string parent = GetParent(path);
         string file = GetFile(path);
         AddEntry(parent, file);
+	return 0;
     }
+    return EEXIST;
 }
 
 int FusionFS::Access(const char *path, int mode)
