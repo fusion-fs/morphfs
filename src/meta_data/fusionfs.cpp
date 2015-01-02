@@ -119,9 +119,9 @@ int FusionFS::Getattr(const char *path, struct stat *statbuf) {
 
     //statbuf->st_ino = inode;
 
-	// first non-volatile parts
+    // first non-volatile parts
     string p = _root;
-	reply r = _conn->run(command("HMGET") << p +  ":ATTR_N:INODE:" + lexical_cast<string>(inode) << 
+    reply r = _conn->run(command("HMGET") << p +  ":ATTR_N:INODE:" + lexical_cast<string>(inode) << 
                          "GID" <<  "UID" << "LINK" << "MODE");
 	vector<reply> re = r.elements();
 
@@ -234,7 +234,18 @@ int FusionFS::Chown(const char *path, uid_t uid, gid_t gid) {
 
 int FusionFS::Truncate(const char *path, off_t newSize) {
     fprintf(stderr,"truncate(path=%s, newSize=%d\n", path, (int)newSize);
-    return 0;
+    struct stat statbuf;
+    if (!Getattr(path, &statbuf)){
+        int inode = Path2Inode(path);
+        statbuf.st_ino = inode;
+
+        statbuf.st_mtime = statbuf.st_ctime = statbuf.st_atime = time(NULL);
+	statbuf.st_size  = newSize;
+        
+        SetAttr(statbuf);
+	return 0;
+    }else
+	return -ENOENT;
 }
 
 int FusionFS::Truncate(const char *path, off_t offset, struct fuse_file_info *fileInfo) {
