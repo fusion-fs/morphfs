@@ -1,2 +1,2 @@
 #!/bin/sh
-npm install -g --unsafe-perm fuse4js hiredis redis thrift node-thrift
+npm install --unsafe-perm fuse4js hiredis redis thrift node-thrift
