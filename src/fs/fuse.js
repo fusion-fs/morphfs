@@ -21,7 +21,9 @@ function excToErrno(exc) {
 }
 
 
-function getattr(path, cb) {	  
+function getattr(path, cb) {
+    console.log("calling " + arguments.callee.name);
+
     var path = pth.join(srcRoot, path);
     return fs.lstat(path, function lstatCb(err, stats) {
             if (err)      
@@ -159,13 +161,14 @@ function rmdir(path, cb) {
 
 }
 
-var init = function (cb) {
+function init(cb) {
+    console.log("calling " + arguments.callee.name);
     console.log("File system started at " + options.mountPoint);
     console.log("To stop it, type this in another shell: fusermount -u " + options.mountPoint);
     cb();
 };
 
-var destroy = function (cb) {
+function destroy(cb) {
     if (options.outJson) {
         try {
             fs.writeFileSync(options.outJson, JSON.stringify(obj, null, '  '), 'utf8');

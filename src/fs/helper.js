@@ -14,6 +14,11 @@ module.exports =
             });
     },
 
+    destroy: function()
+    {
+        client.quit();
+    },
+
     getParent: function (path)
     {
         var n = path.lastIndexOf("/\\");
@@ -44,8 +49,7 @@ module.exports =
 
     Path2Inode: function(path, cb, arg)
     {
-        var key = _root + ":INODE:" + path;
-        var inode;
+        var key = root + ":INODE:" + path;
         client.get(key, function (err, reply) {
             cb(reply, arg);
             });
@@ -53,15 +57,79 @@ module.exports =
 
     SetInode: function(path, ino)
     {
-        var key = _root + ":INODE:" + path;
+        var key = root + ":INODE:" + path;
         client.set(key, ino);
     },
 
     AddDirEntry:  function(parent, file)
     {
-        var key = _root + ":DIR:" + parent;
+        var key = root + ":DIR:" + parent;
         client.lpush(key, file);
     },
 
+    SetAttr: function(statbuf)
+    {
+        var key = root + ":ATTR_N:INODE:" + statbuf.st_ino;
+        client.hmset(key, 
+                     "GID", statbuf.st_gid,
+                     "UID", statbuf.st_uid, 
+                     "LINK", statbuf.st_nlink,
+                     "MODE", statbuf.st_mode);
 
+        if (statbuf.st_atime && statbuf.st_mtime && statbuf.st_ctime) {
+            key = root + ":ATTR_V:INODE:" + statbuf.st_ino;
+            client.hmset(key,
+                         "ATIME", statbuf.st_atime,
+                         "MTIME", statbuf.st_mtime,
+                         "CTIME", statbuf.st_ctime);
+        }
+        if (statbuf.st_mode & S_IFREG) {
+            key = root + ":ATTR_V:INODE:" + statbuf.st_ino;
+            client.hmset(key,
+                         "SIZE", statbuf.st_size);
+        }
+    },
+
+    Getattr_cb: function(inode, statbuf)
+    {
+        if (inode == 0) {
+            return -1;
+        }
+        var key =  root + ":ATTR_N:INODE:" + inode;
+        client.hmget(key, "GID", "UID", "LINK", "MODE",
+                     function (err, reply) {
+                         statbuf.st_gid   = reply[0];
+                         statbuf.st_uid   = reply[1];
+                         statbuf.st_nlink = reply[2];
+                         statbuf.st_mode  = reply[3];
+                         key =  root + ":ATTR_N:INODE:" + inode;
+                         client.hmget(key, 
+                                      "ATIME", "CTIME", "MTIME", "SIZE",
+                                      function (err, reply) 
+                                      {
+                                          statbuf.st_atime  = reply[0];
+                                          statbuf.st_ctime  = reply[1];
+                                          statbuf.st_mtime  = reply[2];
+                                          if (statbuf.st_mode & S_IFREG) {
+                                              statbuf.st_size  = reply[3];
+                                          };
+                                      })});
+    },
+
+    Getattr: function(path, statbuf) 
+    {
+        if (path == "/")
+        {
+            var time = new Date();
+            statbuf.st_mtime = time;
+            statbuf.st_atime = time;
+            statbuf.st_ctime = time;
+            statbuf.st_mode = S_IFDIR | 0755;
+            statbuf.st_nlink = 1;
+            return 0;
+        }
+
+        Path2Inode(path, Getattr_cb, statbuf);
+        return 0;
+    },
 };
