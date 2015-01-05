@@ -24,11 +24,8 @@ function excToErrno(exc) {
 function getattr(path, cb) {
     console.log("calling " + arguments.callee.name);
 
-    var path = pth.join(srcRoot, path);
     return fs.lstat(path, function lstatCb(err, stats) {
-            if (err)      
-                return cb(-excToErrno(err));
-            return cb(0, stats);
+            return helper.Getattr(path, helper.Getattr_cb, cb, stats);
         });
 };
 

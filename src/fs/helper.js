@@ -47,11 +47,11 @@ module.exports =
             });
     },
 
-    Path2Inode: function(path, cb, arg)
+    Path2Inode: function(path, arg, cb, cb2)
     {
         var key = root + ":INODE:" + path;
         client.get(key, function (err, reply) {
-            cb(reply, arg);
+                cb(reply, arg, cb2);
             });
     },
 
@@ -90,8 +90,9 @@ module.exports =
         }
     },
 
-    Getattr_cb: function(inode, statbuf)
+    Getattr_cb: function(inode, statbuf, cb)
     {
+        console.log("calling getattr_cb");
         if (inode == 0) {
             return -1;
         }
@@ -110,26 +111,31 @@ module.exports =
                                           statbuf.st_atime  = reply[0];
                                           statbuf.st_ctime  = reply[1];
                                           statbuf.st_mtime  = reply[2];
+                                          /*
                                           if (statbuf.st_mode & S_IFREG) {
                                               statbuf.st_size  = reply[3];
                                           };
+                                          */
+                                          cb(0, statbuf);
                                       })});
     },
 
-    Getattr: function(path, statbuf) 
+    Getattr: function(path, cb, cb2, statbuf) 
     {
+        console.log("calling getattr path " + path);
+        console.log("compare " + (path == "/"));
         if (path == "/")
         {
             var time = new Date();
             statbuf.st_mtime = time;
             statbuf.st_atime = time;
             statbuf.st_ctime = time;
-            statbuf.st_mode = S_IFDIR | 0755;
+            /*statbuf.st_mode = S_IFDIR | 0755;*/
             statbuf.st_nlink = 1;
-            return 0;
+            cb2(0, statbuf);
         }
 
-        Path2Inode(path, Getattr_cb, statbuf);
+        this.Path2Inode(path, statbuf, cb, cb2);
         return 0;
     },
 };
