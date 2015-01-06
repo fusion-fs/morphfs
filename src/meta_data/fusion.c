@@ -12,14 +12,6 @@ struct fuse_operations fusionfs_op;
 #define NS "test"
 volatile int force_exit = 0;
 
-void *rpc(void *arg)
-{
-    ulong port = *(ulong *)arg;
-    int ret = start_rpc_server(port);
-    fprintf(stderr, "rpc server returned %d\n", ret);
-    return NULL;
-}
-
 int main(int argc, char *argv[]) {
     int fuse_stat;
     char *ns = NULL;
@@ -110,21 +102,13 @@ int main(int argc, char *argv[]) {
         "-o", "allow_other",
         "-o", "nonempty",
         "-o", "debug",
+        "-f",
         NULL
     };
-    int fuse_argc = 8;
-    pthread_t rpc_thread;
-    if (pthread_create(&rpc_thread, NULL, rpc, &port)){
-        fprintf(stderr, "failed to create rpc thread\n");
-        return 1;
-    }
-    pthread_setname_np(rpc_thread, "rpc_t");
+    int fuse_argc = 9;
+
     fuse_stat = fuse_main(fuse_argc, fuse_argv, &fusionfs_op, NULL);
     fprintf(stderr, "fuse_main returned %d\n", fuse_stat);
-    if (pthread_join(rpc_thread,NULL)){
-        fprintf(stderr, "failed to join rpc thread\n");
-        return 1;
-    }
     free(ns);
     //free(mount);
     return fuse_stat;

@@ -228,20 +228,12 @@ int FusionFS::Write(const char *path, const char *buf, size_t size, off_t offset
         return -ENOENT;
     }
 
-    char buffer[4096], *p = buffer;
-    int n = sprintf(buffer,"Key: %s\x0d\x0a"
-                     "Offset: %lu\x0d\x0a"
-                     "Size: %lu\x0d\x0a", 
-                     path, (ulong)offset, (ulong)size);
-    if (n + size < sizeof(buffer)){
-        memcpy((void *)(p + n), (void *)buf, size);
-    }
-    int ret = write_to_client(fd, (unsigned char *)buffer, n + size);
-    if (ret < n) {
+    int ret = write_to_client(fd, (unsigned char *)buf, size);
+    if (ret < size) {
         fprintf(stderr, "failed to write, ret %d\n", ret);
         return -EIO;
     }
-    ret -= n;
+
     struct stat statbuf;
     if (!Getattr(path, &statbuf)){
         int inode = Path2Inode(path);
