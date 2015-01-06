@@ -1,17 +1,3 @@
-enum xio_states {
-    XIO_INIT,
-    XIO_ESTABLISHED,
-    XIO_SEND_COMMAND,
-    XIO_HANDLE_MESSAGE,
-    XIO_COMMAND_DONE,
-};
-
-struct per_session_data_xio {
-    int packets_left;
-    int total_message;
-    unsigned long sum;
-    enum xio_states state;
-};
 extern volatile int force_exit;
 #ifdef __cplusplus
 extern "C" {

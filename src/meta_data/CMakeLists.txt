@@ -3,8 +3,6 @@ project(fusionfs-fuse)
 cmake_minimum_required(VERSION 2.8)
 INCLUDE (CheckIncludeFiles)
 
-find_package(Protobuf REQUIRED)
-
 set(FUSIONFS_VERSION_MAJOR 0)
 set(FUSIONFS_VERSION_MINOR 1)
 set(FUSIONFS_VERSION_PATCH 0)
@@ -20,13 +18,12 @@ SET(CMAKE_C_FLAGS_DEBUG "-O0 -g -DDEBUG")
 
 add_definitions(-D_FILE_OFFSET_BITS=64)
 
-set(Boost_NO_BOOST_CMAKE ON)
 #add_subdirectory(redis3m)
 
-
-set(CPPSRCS cppwrapper.cpp fusionfs.cpp rpc.cpp)
+set(CPPSRCS cppwrapper.cpp fusionfs.cpp rpc.cpp gen-cpp/rpc_types.cpp
+gen-cpp/rpc_constants.cpp gen-cpp/RPC.cpp)
 set(CSRCS fusion.c)
 add_executable(fusionfs ${CSRCS} ${CPPSRCS})
-target_link_libraries(fusionfs fuse pthread rt redis3m)
+target_link_libraries(fusionfs fuse pthread rt redis3m thrift)
 
 INSTALL(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/fusionfs DESTINATION bin)
