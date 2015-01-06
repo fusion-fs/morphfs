@@ -1,10 +1,17 @@
 THRIFT=/usr/local/bin/thrift
 NODE=/usr/bin/node
-all:
+all: js_thrift cpp_thrift meta_server
+
+meta_server: 
+	cd meta_data; cmake ./; make
+
+cpp_thrift:
+	cd meta_data; ${THRIFT} --gen cpp ../thrift/rpc.thrift
+js_thrift:
 	cd thrift;${THRIFT} --gen js:node rpc.thrift
 
-server: all
+test_thrift_server: js_thrift
 	cd thrift; ${NODE} server.js
 
-client: all
+test_thrift_client: js_thrift
 	cd thrift; ${NODE} client.js
