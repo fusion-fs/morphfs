@@ -17,28 +17,58 @@ var server = thrift.createServer(RPC, {
         },
 
     read: function(arg, result) {
-            console.log("read:");
-            var test_readRes = new ttypes.ReadRes({status: -1});
+            console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len);
+            var path = root + arg.key;
 
-            result(null, test_readRes);
+            var fd = fs.open(path, "r",  function(err, fd) {
+                    if (err) {
+                        throw "cannot open " + path;
+                    } else {
+                        var sz = parseInt(arg.len, 10);
+                        var buf = new Buffer(sz);
+                        fs.read(fd, buf, 0, buf.length, arg.offset,  
+                                 function(err, len, buffer) {
+                                    fs.close(fd);
+                                    if (len > 0) {
+                                        var readRes = new ttypes.ReadRes({
+                                            status: 0,
+                                            len: len,
+                                            data: buffer});
+                                    }else {                                    
+                                        var readRes = new ttypes.ReadRes({status: -1});
+                                    }
+                                    result(null, readRes);
+                                });
+                    }
+
+                });
         },
 
     write: function(arg, result) {
-            console.log("write:" + arg.key + 
-                        " at " + arg.offset + " len " + arg.len + " data:" + arg.data);
+            console.log("write:" + arg.key + " off " + arg.offset + " len " + arg.len);
             var path = root + arg.key;
-            var fd = fs.openSync(path, "w+");
-            var buffer = new Buffer(arg.data);
-            var len = fs.writeSync(fd, buffer, 0, arg.len, arg.offset);
-            fs.close(fd);
-            var status = 0;
-            if (len < 0)
-                status = -1;
-            
-            var writeRes = new ttypes.WriteRes({status: status,
-                                                len: len});
+            var buf = new Buffer(arg.data);
+            var fd = fs.open(path, "w+",  function(err, fd) {
+                    if (err) {
+                        throw "cannot open " + path;
+                    } else {
+                        var off = parseInt(arg.offset, 10);
+                        var sz = parseInt(arg.len, 10);
+                        fs.write(fd, buf, 0, sz, off,  
+                                 function(err, len, buffer) {
+                                     fs.close(fd);
+                                     var status = 0;
+                                     if (len < 0)
+                                         status = -1;
+                                     
+                                     var writeRes = new ttypes.WriteRes({status: status,
+                                                                         len: len});
 
-            result(null, writeRes);
+                                     result(null, writeRes);
+                                 });
+
+                    }
+                });
         },
     },
     options

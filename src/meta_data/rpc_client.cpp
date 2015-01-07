@@ -57,8 +57,23 @@ extern "C" {
                          ulong offset, ulong size, 
                          char *data)
     {
-        //RPCClient* client = get_client(fd);
-        return size;
+        RPCClient* client = get_client(fd);
+        ReadArg arg;
+        arg.__set_key(path);
+        arg.__set_offset(offset);
+        arg.__set_len(size);
+        client->send_read(arg);
+        ReadRes res;
+
+        //FIXME: catch exception
+        client->recv_read(res);
+        fprintf(stderr, "read recv: status %d\n", res.status);
+        if (!res.status){
+            memcpy(data, res.data.c_str(), res.len);
+            return (int)res.len;
+        }
+        else
+            return res.status;
     }
 
 }
