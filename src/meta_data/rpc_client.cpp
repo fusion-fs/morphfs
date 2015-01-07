@@ -23,7 +23,7 @@ extern "C" {
         static RPCClient *client = NULL;
        
         if (!client) {
-            shared_ptr<TSocket> socket(new TSocket("localhost", 9090));
+            shared_ptr<TSocket> socket(new TSocket("127.0.0.1", 9090));
             shared_ptr<TTransport> transport(new TBufferedTransport(socket));
             shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
             client = new RPCClient(protocol);
