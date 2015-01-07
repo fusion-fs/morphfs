@@ -31,7 +31,7 @@ struct ReadRes
 {
 	1:i32   status,
 	2:optional i64 len,
-    3:optional string data,
+    3:optional binary data,
 }
 
 struct WriteArg
@@ -39,7 +39,7 @@ struct WriteArg
 	1:string key,
 	2:i64    offset,
     3:i64    len,
-	4:string data,
+	4:binary data,
 }
 
 struct WriteRes
