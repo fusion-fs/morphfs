@@ -48,9 +48,13 @@ var server = thrift.createServer(RPC, {
             console.log("write:" + arg.key + " off " + arg.offset + " len " + arg.len);
             var path = root + arg.key;
             var buf = new Buffer(arg.data);
-            var fd = fs.open(path, "w+",  function(err, fd) {
+            var flag = "w+";
+            if (fs.existsSync(path)){
+                flag = "rs+";
+            }
+            var fd = fs.open(path, flag,  function(err, fd) {
                     if (err) {
-                        throw "cannot open " + path;
+                        throw "open failed " + path;
                     } else {
                         var off = parseInt(arg.offset, 10);
                         var sz = parseInt(arg.len, 10);
