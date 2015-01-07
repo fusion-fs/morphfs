@@ -44,6 +44,7 @@ extern "C" {
         arg.__set_data(data);
         client->send_write(arg);
         WriteRes res;
+        //FIXME: catch exception
         client->recv_write(res);
         fprintf(stderr, "write recv: status %d\n", res.status);
         if (!res.status)
