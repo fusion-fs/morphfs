@@ -33,17 +33,31 @@ extern "C" {
     }
     
 
-    int write_to_client(int fd, unsigned char *data, ulong len) 
+    int write_to_client(int fd, const char *path, 
+                        const char *data, ulong offset, ulong size) 
     {
         RPCClient* client = get_client(fd);
-        return len;
+        WriteArg arg;
+        arg.__set_key(path);
+        arg.__set_offset(offset);
+        arg.__set_len(size);
+        arg.__set_data(data);
+        client->send_write(arg);
+        WriteRes res;
+        client->recv_write(res);
+        fprintf(stderr, "write recv: status %d\n", res.status);
+        if (!res.status)
+            return (int)res.len;
+        else
+            return res.status;
     }
     
-    int read_from_client(int fd, unsigned char *req, ulong req_len, 
-                         unsigned char *resp, ulong resp_len)
+    int read_from_client(int fd, const char *path, 
+                         ulong offset, ulong size, 
+                         char *data)
     {
-        RPCClient* client = get_client(fd);
-        return req_len;
+        //RPCClient* client = get_client(fd);
+        return size;
     }
 
 }
