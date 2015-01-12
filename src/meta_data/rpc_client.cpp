@@ -59,14 +59,16 @@ extern "C" {
     {
         RPCClient* client = get_client(fd);
         ulong written = 0;
-        while (written < size){
-            WriteArg arg;
-            WriteRes res;
+        WriteArg arg;
+        WriteRes res;
 
+        while (written < size){
+            signed char *buf = (signed char *)data + written;
+            vector<signed char> vec(buf, buf + size - written);
             arg.__set_key(path);
             arg.__set_offset(offset + written);
             arg.__set_len(size - written);
-            arg.__set_data(data + written);
+            arg.__set_data(vec);
             client->send_write(arg);
             //FIXME: catch exception
             client->recv_write(res);
@@ -99,7 +101,7 @@ extern "C" {
         //FIXME: catch exception
         client->recv_read(res);
         if (!res.status){
-            memcpy(data, res.data.c_str(), res.len);
+            memcpy(data, res.data.data(), res.len);
             fprintf(stderr, "read recv: status %d len %lu\n", res.status, res.len);
             return (int)res.len;
         }
