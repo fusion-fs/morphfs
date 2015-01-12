@@ -1,5 +1,5 @@
 var thrift = require('thrift');
-var options = {tls: false, transport: thrift.TBufferedTransport};
+var options = {tls: false, transport: thrift.TFileTransport, protocol: thrift.TCompactProtocol};
 var fs = require('fs');
 
 var RPC = require('./gen-nodejs/RPC.js'),
@@ -28,13 +28,12 @@ var server = thrift.createServer(RPC, {
             var path = root + arg.key;
             if (fs.existsSync(path) == false)
                 fs.openSync(path, "w");
-            var fd = fs.truncateSync(root + arg.key, arg.newSize);
+            fs.truncateSync(root + arg.key, arg.newSize);
             var truncateRes = new ttypes.TruncateRes({status: 0});
             result(null, truncateRes);
         },
 
     read: function(arg, result) {
-            console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len);
             var path = root + arg.key;
             var fd = fs.open(path, "r",  function(err, fd) {
                     if (err) {
@@ -44,7 +43,7 @@ var server = thrift.createServer(RPC, {
                         var buf = new Buffer(sz);
                         fs.read(fd, buf, 0, buf.length, arg.offset,  
                                  function(err, len, buffer) {
-                                    fs.close(fd);
+                                    console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len + " read " + len);
                                     if (len > 0) {
                                         var readRes = new ttypes.ReadRes({
                                             status: 0,
@@ -61,29 +60,36 @@ var server = thrift.createServer(RPC, {
         },
 
     write: function(arg, result) {
-            console.log("write:" + arg.key + " off " + arg.offset + " len " + arg.len);
             var path = root + arg.key;
-            var buf = new Buffer(arg.data);
+            var buf = new Buffer(arg.data, 'binary');
             var flag = "w+";
             if (fs.existsSync(path)){
                 flag = "rs+";
             }
+            var off = parseInt(arg.offset, 10);
+            var sz = parseInt(arg.len, 10);
+            console.log("write:" + arg.key + " off " + off +  " sz " + sz + " len " + buf.length);
+
             var fd = fs.open(path, flag,  function(err, fd) {
                     if (err) {
                         throw "open failed " + path;
                     } else {
-                        var off = parseInt(arg.offset, 10);
-                        var sz = parseInt(arg.len, 10);
-                        console.log("off " + off + " sz " + sz + " len " + buf.length);
-                        fs.write(fd, buf, 0, sz, off,  
+                        fs.write(fd, buf, 0, buf.length, off,  
                                  function(err, len, buffer) {
                                      fs.close(fd);
                                      var status = 0;
-                                     if (len < 0)
+                                     if (len < 0){
                                          status = -1;
-                                     
+                                         var writeRes = new ttypes.WriteRes({status: status});
+                                         result(null, writeRes);
+                                         return;
+                                     }
+                                     // if buffer size is less than told size, extend the file if necessary
+                                     if (buf.length < arg.len) {
+                                         console.log("write beyond buffer");
+                                     }
                                      var writeRes = new ttypes.WriteRes({status: status,
-                                                                         len: len});
+                                                                         len: arg.len});
 
                                      result(null, writeRes);
                                  });

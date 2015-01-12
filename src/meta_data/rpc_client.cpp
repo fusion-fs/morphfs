@@ -1,5 +1,6 @@
 #include "./gen-cpp/RPC.h"
 #include <thrift/protocol/TBinaryProtocol.h>
+#include <thrift/protocol/TCompactProtocol.h>
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 #include <vector>
@@ -44,7 +45,7 @@ extern "C" {
 
             shared_ptr<TSocket> socket(new TSocket(host, port));
             shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-            shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
+            shared_ptr<TProtocol> protocol(new TCompactProtocol(transport));
             client = new RPCClient(protocol);
             it->second = client;
             transport->open();
