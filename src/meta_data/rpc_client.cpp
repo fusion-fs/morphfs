@@ -62,6 +62,7 @@ extern "C" {
         while (written < size){
             WriteArg arg;
             WriteRes res;
+
             arg.__set_key(path);
             arg.__set_offset(offset + written);
             arg.__set_len(size - written);
@@ -72,6 +73,8 @@ extern "C" {
             if (!res.status){
                 fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
                 written += res.len;
+                if (!res.len)
+                    break;
             }
             else{
                 fprintf(stderr, "write recv: status %d\n", res.status);

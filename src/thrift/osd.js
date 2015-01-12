@@ -40,14 +40,16 @@ var server = thrift.createServer(RPC, {
                         throw "cannot open " + path;
                     } else {
                         var sz = parseInt(arg.len, 10);
+                        var off = parseInt(arg.offset, 10);
                         var buf = new Buffer(sz);
-                        fs.read(fd, buf, 0, buf.length, arg.offset,  
+                        fs.read(fd, buf, 0, buf.length, off,  
                                  function(err, len, buffer) {
-                                    console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len + " read " + len);
+                                    console.log("read:" + arg.key + " off " + off 
+                                                + " len " + arg.len + " read " + len + " buf " + buffer.length);
                                     if (len > 0) {
                                         var readRes = new ttypes.ReadRes({
                                             status: 0,
-                                            len: len,
+                                            len: buffer.length,
                                             data: buffer});
                                     }else {                                    
                                         var readRes = new ttypes.ReadRes({status: -1});
@@ -61,23 +63,26 @@ var server = thrift.createServer(RPC, {
 
     write: function(arg, result) {
             var path = root + arg.key;
-            var buf = new Buffer(arg.data, 'binary');
+            var buf = new Buffer(arg.data, 'utf8');
             var flag = "w+";
             if (fs.existsSync(path)){
                 flag = "rs+";
             }
-            var off = parseInt(arg.offset, 10);
-            var sz = parseInt(arg.len, 10);
-            if (buf.length == 0 && sz > 0) {
-                buf = new Buffer(sz);
+            var off = arg.offset + 0;
+            var sz = arg.len + 0;
+
+            if (sz > buf.length){
+                sz = buf.length;
             }
-            console.log("write:" + arg.key + " off " + off +  " sz " + sz + " len " + buf.length);
+
+            console.log("write:" + arg.key + " off " + off + " req_len " + arg.len +
+                        " sz " + sz + " len " + buf.length);
 
             var fd = fs.open(path, flag,  function(err, fd) {
                     if (err) {
                         throw "open failed " + path;
                     } else {
-                        fs.write(fd, buf, 0, buf.length, off,  
+                        fs.write(fd, buf, 0, sz, off,  
                                  function(err, len, buffer) {
                                      fs.close(fd);
                                      var status = 0;

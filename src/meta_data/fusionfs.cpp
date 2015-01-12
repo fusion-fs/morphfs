@@ -289,14 +289,15 @@ int FusionFS::Read(const char *path, char *buf, size_t size, off_t offset, struc
 }
 
 int FusionFS::Write(const char *path, const char *buf, size_t size, off_t offset, struct fuse_file_info *fileInfo) {
-    fprintf(stderr,"write(path=%s, size=%d, offset=%d)\n", path, (int)size, (int)offset);
+    fprintf(stderr,"-->write(path=%s, size=%d, offset=%d)\n", path, (int)size, (int)offset);
     int fd = find_client(path);
     if (fd < 0) {
         return -ENOENT;
     }
 
     int ret = write_to_client(fd, path, (const char *)buf, offset, size);
-    if (ret < size) {
+
+    if (ret < 0) {
         fprintf(stderr, "failed to write, ret %d\n", ret);
         return -EIO;
     }
@@ -312,6 +313,7 @@ int FusionFS::Write(const char *path, const char *buf, size_t size, off_t offset
         }
         SetAttr(statbuf);
     }
+    fprintf(stderr,"<--write(path=%s, size=%d, offset=%d ret=%d)\n", path, (int)size, (int)offset, (int)ret);
     return ret;
 }
 

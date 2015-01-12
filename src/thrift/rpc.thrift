@@ -61,7 +61,7 @@ struct WriteArg
 	1:string key,
 	2:i64    offset,
     3:i64    len,
-	4:binary data,
+	4:string data,
 }
 
 struct WriteRes
