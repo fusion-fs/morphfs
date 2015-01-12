@@ -43,15 +43,18 @@ var server = thrift.createServer(RPC, {
                         var off = parseInt(arg.offset, 10);
                         var buf = new Buffer(sz);
                         fs.read(fd, buf, 0, buf.length, off,  
-                                 function(err, len, buffer) {
+                                 function(err, length, buffer) {
                                     console.log("read:" + arg.key + " off " + off 
-                                                + " len " + arg.len + " read " + len + " buf " + buffer.length);
-                                    if (len > 0) {
+                                                + " len " + arg.len + " read " + length + " buf " + buffer.length);
+                                    if (length > 0) {
                                         var readRes = new ttypes.ReadRes({
                                             status: 0,
-                                            len: buffer.length,
+                                            len: length,
                                             data: buffer});
                                     }else {                                    
+                                        console.log("ERROR: read:" + arg.key + " off " + off 
+                                                    + " len " + arg.len + " read " + length + " buf " + buffer.length);
+
                                         var readRes = new ttypes.ReadRes({status: -1});
                                     }
                                     result(null, readRes);

@@ -101,12 +101,12 @@ extern "C" {
         //FIXME: catch exception
         client->recv_read(res);
         if (!res.status){
-            memcpy(data, res.data.data(), res.len);
             fprintf(stderr, "read recv: status %d len %lu\n", res.status, res.len);
+            memcpy(data, res.data.data(), res.len);
             return (int)res.len;
         }
         else{
-            fprintf(stderr, "read recv: status %d\n", res.status);
+            fprintf(stderr, "ERROR: read recv: status %d\n", res.status);
             return res.status;
         }
     }
