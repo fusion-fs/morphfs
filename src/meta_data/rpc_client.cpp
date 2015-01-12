@@ -58,23 +58,27 @@ extern "C" {
                         const char *data, ulong offset, ulong size) 
     {
         RPCClient* client = get_client(fd);
-        WriteArg arg;
-        arg.__set_key(path);
-        arg.__set_offset(offset);
-        arg.__set_len(size);
-        arg.__set_data(data);
-        client->send_write(arg);
-        WriteRes res;
-        //FIXME: catch exception
-        client->recv_write(res);
-        if (!res.status){
-            fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
-            return (int)res.len;
+        ulong written = 0;
+        while (written < size){
+            WriteArg arg;
+            WriteRes res;
+            arg.__set_key(path);
+            arg.__set_offset(offset + written);
+            arg.__set_len(size - written);
+            arg.__set_data(data + written);
+            client->send_write(arg);
+            //FIXME: catch exception
+            client->recv_write(res);
+            if (!res.status){
+                fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
+                written += res.len;
+            }
+            else{
+                fprintf(stderr, "write recv: status %d\n", res.status);
+                break;
+            }
         }
-        else{
-            fprintf(stderr, "write recv: status %d\n", res.status);
-            return res.status;
-        }
+        return (int)written;
     }
     
     int read_from_client(int fd, const char *path, 

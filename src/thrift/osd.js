@@ -68,6 +68,9 @@ var server = thrift.createServer(RPC, {
             }
             var off = parseInt(arg.offset, 10);
             var sz = parseInt(arg.len, 10);
+            if (buf.length == 0 && sz > 0) {
+                buf = new Buffer(sz);
+            }
             console.log("write:" + arg.key + " off " + off +  " sz " + sz + " len " + buf.length);
 
             var fd = fs.open(path, flag,  function(err, fd) {
@@ -89,7 +92,7 @@ var server = thrift.createServer(RPC, {
                                          console.log("write beyond buffer");
                                      }
                                      var writeRes = new ttypes.WriteRes({status: status,
-                                                                         len: arg.len});
+                                                                         len: len});
 
                                      result(null, writeRes);
                                  });
