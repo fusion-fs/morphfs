@@ -234,6 +234,17 @@ int FusionFS::Chown(const char *path, uid_t uid, gid_t gid) {
 
 int FusionFS::Truncate(const char *path, off_t newSize) {
     fprintf(stderr,"truncate(path=%s, newSize=%d\n", path, (int)newSize);
+	int fd = find_client(path);
+	if (fd < 0) {
+	    return -ENOENT;
+	}
+
+	int ret = truncate_on_client(fd, path, newSize);
+	if (ret) {
+	    fprintf(stderr, "failed to write, ret %d\n", ret);
+	    return -EIO;
+	}
+
     struct stat statbuf;
     if (!Getattr(path, &statbuf)){
         int inode = Path2Inode(path);

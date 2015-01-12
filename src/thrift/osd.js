@@ -23,9 +23,19 @@ var server = thrift.createServer(RPC, {
             result(null, mkdirRes);
         },
 
+    truncate: function(arg, result) {
+            console.log("truncate:" + arg.key + " size " + arg.newSize);
+            var path = root + arg.key;
+            if (fs.existsSync(path) == false)
+                fs.openSync(path, "w");
+            var fd = fs.truncateSync(root + arg.key, arg.newSize);
+            var truncateRes = new ttypes.TruncateRes({status: 0});
+            result(null, truncateRes);
+        },
+
     read: function(arg, result) {
             console.log("read:" + arg.key + " off " + arg.offset + " len " + arg.len);
-            var path = root + arg.key;
+
 
             var fd = fs.open(path, "r",  function(err, fd) {
                     if (err) {
@@ -65,6 +75,7 @@ var server = thrift.createServer(RPC, {
                     } else {
                         var off = parseInt(arg.offset, 10);
                         var sz = parseInt(arg.len, 10);
+                        //console.log("off " + off + " sz " + sz + " len " + buf.length);
                         fs.write(fd, buf, 0, sz, off,  
                                  function(err, len, buffer) {
                                      fs.close(fd);

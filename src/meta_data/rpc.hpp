@@ -11,6 +11,7 @@ extern "C" {
                                 ulong offset, ulong size, 
                                 char *data);
     extern int mkdir_on_client(int fd, const char *path, uint mode);
+    extern int truncate_on_client(int fd, const char *path, ulong newSize);
 }
 #else
 extern int constructOSD(const char *config);
@@ -23,4 +24,5 @@ extern int read_from_client(int fd, const char *path,
                             ulong offset, ulong size, 
                             char *data);
 extern int mkdir_on_client(int fd, const char *path, uint mode);
+extern int truncate_on_client(int fd, const char *path, ulong newSize);
 #endif

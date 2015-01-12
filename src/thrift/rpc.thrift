@@ -31,6 +31,17 @@ struct MkdirRes
 	1:i32   status,
 }
 
+struct TruncateArg
+{
+	1:string key,
+	2:i32    newSize,
+}
+
+struct TruncateRes
+{
+	1:i32   status,
+}
+
 struct ReadArg
 {
 	1:string key,
@@ -65,4 +76,5 @@ service RPC
   ReadRes read (1:ReadArg arg),
   WriteRes write (1:WriteArg arg),
   MkdirRes mkdir (1:MkdirArg arg),
+  TruncateRes truncate (1:TruncateArg arg),
 }

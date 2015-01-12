@@ -110,5 +110,20 @@ extern "C" {
         fprintf(stderr, "read recv: status %d\n", res.status);
 	return res.status;
     }
+
+    int truncate_on_client(int fd, const char *path, ulong newSize)
+    {
+        RPCClient* client = get_client(fd);
+        TruncateArg arg;
+        arg.__set_key(path);
+        arg.__set_newSize(newSize);
+        client->send_truncate(arg);
+        TruncateRes res;
+
+        //FIXME: catch exception
+        client->recv_truncate(res);
+        fprintf(stderr, "read recv: status %d\n", res.status);
+	return res.status;
+    }
 }
 #endif
