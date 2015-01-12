@@ -15,9 +15,9 @@ extern "C" {
     
     int add_client(const char *host)
     {
-	OSDPair p = make_pair(host, (RPCClient *)NULL);
-	OSDVector.insert(OSDVector.begin(), p);
-	return 0;
+        OSDPair p = make_pair(host, (RPCClient *)NULL);
+        OSDVector.insert(OSDVector.begin(), p);
+        return 0;
     }
 
     int find_client(const char *path) 
@@ -27,26 +27,26 @@ extern "C" {
 
     RPCClient* get_client(int fd)
     {
-	OSDPair pair = OSDVector[fd];
-        RPCClient *client = pair.second;
-	
-        if (!client) {
-	    string osd = pair.first;
-	    string host = osd;
-	    ulong port = 9090;
+        vector<OSDPair>::iterator it = OSDVector.begin() + fd;
+        RPCClient *client = it->second;
 
-	    unsigned found = osd.find_last_of(":");
-	    if (found) {
-		host = osd.substr(0,found);
-		port = atoi(osd.substr(found + 1).c_str());
-	    }
-	    fprintf(stderr, "create rpc to %s:%lu\n", host.c_str(), port);
+        if (!client) {
+            string osd = it->first;
+            string host = osd;
+            ulong port = 9090;
+
+            unsigned found = osd.find_last_of(":");
+            if (found) {
+                host = osd.substr(0,found);
+                port = atoi(osd.substr(found + 1).c_str());
+            }
+            fprintf(stderr, "create rpc to %s:%lu\n", host.c_str(), port);
 
             shared_ptr<TSocket> socket(new TSocket(host, port));
             shared_ptr<TTransport> transport(new TBufferedTransport(socket));
             shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
             client = new RPCClient(protocol);
-	    pair.second = client;
+            it->second = client;
             transport->open();
         }
         return client;
@@ -66,11 +66,14 @@ extern "C" {
         WriteRes res;
         //FIXME: catch exception
         client->recv_write(res);
-        fprintf(stderr, "write recv: status %d\n", res.status);
-        if (!res.status)
+        if (!res.status){
+            fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
             return (int)res.len;
-        else
+        }
+        else{
+            fprintf(stderr, "write recv: status %d\n", res.status);
             return res.status;
+        }
     }
     
     int read_from_client(int fd, const char *path, 
@@ -87,13 +90,15 @@ extern "C" {
 
         //FIXME: catch exception
         client->recv_read(res);
-        fprintf(stderr, "read recv: status %d\n", res.status);
         if (!res.status){
             memcpy(data, res.data.c_str(), res.len);
+            fprintf(stderr, "read recv: status %d len %lu\n", res.status, res.len);
             return (int)res.len;
         }
-        else
+        else{
+            fprintf(stderr, "read recv: status %d\n", res.status);
             return res.status;
+        }
     }
 
     int mkdir_on_client(int fd, const char *path, uint mode)
@@ -108,7 +113,7 @@ extern "C" {
         //FIXME: catch exception
         client->recv_mkdir(res);
         fprintf(stderr, "read recv: status %d\n", res.status);
-	return res.status;
+        return res.status;
     }
 
     int truncate_on_client(int fd, const char *path, ulong newSize)
@@ -123,7 +128,7 @@ extern "C" {
         //FIXME: catch exception
         client->recv_truncate(res);
         fprintf(stderr, "read recv: status %d\n", res.status);
-	return res.status;
+        return res.status;
     }
 }
 #endif
