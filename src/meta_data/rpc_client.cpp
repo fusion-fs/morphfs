@@ -62,28 +62,33 @@ extern "C" {
         ulong written = 0;
         WriteArg arg;
         WriteRes res;
-
-        while (written < size){
-            signed char *buf = (signed char *)data + written;
-            vector<signed char> vec(buf, buf + size - written);
-            arg.__set_key(path);
-            arg.__set_offset(offset + written);
-            arg.__set_len(size - written);
-            arg.__set_data(vec);
-            client->send_write(arg);
-            //FIXME: catch exception
-            client->recv_write(res);
-            if (!res.status){
-                fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
-                written += res.len;
-                if (!res.len)
+        try {
+            while (written < size){
+                signed char *buf = (signed char *)data + written;
+                vector<signed char> vec(buf, buf + size - written);
+                arg.__set_key(path);
+                arg.__set_offset(offset + written);
+                arg.__set_len(size - written);
+                arg.__set_data(vec);
+                client->send_write(arg);
+                //FIXME: catch exception
+                client->recv_write(res);
+                if (!res.status){
+                    fprintf(stderr, "write recv: status %d len %lu\n", res.status, res.len);
+                    written += res.len;
+                    if (!res.len)
+                        break;
+                }
+                else{
+                    fprintf(stderr, "write recv: status %d\n", res.status);
                     break;
+                }
             }
-            else{
-                fprintf(stderr, "write recv: status %d\n", res.status);
-                break;
-            }
+        } catch (...) {
+            fprintf(stderr, "write: ERROR\n");
+            return -EIO;
         }
+
         return (int)written;
     }
 
@@ -93,14 +98,22 @@ extern "C" {
     {
         RPCClient* client = get_client(fd);
         ReadArg arg;
+        ReadRes res;
         arg.__set_key(path);
         arg.__set_offset(offset);
         arg.__set_len(size);
-        client->send_read(arg);
-        ReadRes res;
-
+#if 0
+        client->send_read(arg);   
         //FIXME: catch exception
         client->recv_read(res);
+#else
+        try {
+            client->read(res, arg);
+        } catch (...) {
+            fprintf(stderr, "read recv: ERROR\n");
+            return -EIO;
+        }
+#endif
         if (!res.status){            
             fprintf(stderr, "read recv: status %d len %lu\n", res.status, res.len);
             ulong len = (res.len > size) ? size : res.len;
@@ -132,13 +145,19 @@ extern "C" {
     {
         RPCClient* client = get_client(fd);
         TruncateArg arg;
+        TruncateRes res;
         arg.__set_key(path);
         arg.__set_newSize(newSize);
-        client->send_truncate(arg);
-        TruncateRes res;
+        try {
+            client->send_truncate(arg);
 
-        //FIXME: catch exception
-        client->recv_truncate(res);
+            //FIXME: catch exception
+            client->recv_truncate(res);
+        } catch (...) {
+            fprintf(stderr, "truncate recv: ERROR\n");
+            return -EIO;
+        }
+
         fprintf(stderr, "read recv: status %d\n", res.status);
         return res.status;
     }

@@ -113,12 +113,12 @@ int main(int argc, char *argv[]) {
         "fuse-fusionfs", mount,
         "-o", "allow_other",
         "-o", "nonempty",
-        "-f",
+        "-f", "-s",
         "-o", "debug",
         NULL
     };
-    int fuse_argc = 7;
-    if (debug) fuse_argc = 9;
+    int fuse_argc = 8;
+    if (debug) fuse_argc = 10;
 
     fuse_stat = fuse_main(fuse_argc, fuse_argv, &fusionfs_op, NULL);
     fprintf(stderr, "fuse_main returned %d\n", fuse_stat);
