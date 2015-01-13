@@ -4,6 +4,7 @@
 #include <thrift/transport/TSocket.h>
 #include <thrift/transport/TTransportUtils.h>
 #include <vector>
+
 #ifdef __cplusplus
 extern "C" {
     using namespace ::apache::thrift;
@@ -45,7 +46,7 @@ extern "C" {
 
             shared_ptr<TSocket> socket(new TSocket(host, port));
             shared_ptr<TTransport> transport(new TBufferedTransport(socket));
-            shared_ptr<TProtocol> protocol(new TCompactProtocol(transport));
+            shared_ptr<TProtocol> protocol(new TBinaryProtocol(transport));
             client = new RPCClient(protocol);
             it->second = client;
             transport->open();
@@ -85,7 +86,7 @@ extern "C" {
         }
         return (int)written;
     }
-    
+
     int read_from_client(int fd, const char *path, 
                          ulong offset, ulong size, 
                          char *data)
@@ -100,10 +101,11 @@ extern "C" {
 
         //FIXME: catch exception
         client->recv_read(res);
-        if (!res.status){
+        if (!res.status){            
             fprintf(stderr, "read recv: status %d len %lu\n", res.status, res.len);
-            memcpy(data, res.data.data(), res.len);
-            return (int)res.len;
+            ulong len = (res.len > size) ? size : res.len;
+            memcpy(data, res.data.data(), len);
+            return (int)len;
         }
         else{
             fprintf(stderr, "ERROR: read recv: status %d\n", res.status);

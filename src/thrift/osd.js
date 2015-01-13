@@ -1,5 +1,6 @@
 var thrift = require('thrift');
-var options = {tls: false, transport: thrift.TFileTransport, protocol: thrift.TCompactProtocol};
+//var options = {tls: false, transport: thrift.TBufferedTransport, protocol: thrift.TBinaryProtocol};
+var options = {tls: false};
 var fs = require('fs');
 
 var RPC = require('./gen-nodejs/RPC.js'),
