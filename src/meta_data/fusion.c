@@ -113,7 +113,8 @@ int main(int argc, char *argv[]) {
         "fuse-fusionfs", mount,
         "-o", "allow_other",
         "-o", "nonempty",
-        "-f", "-s",
+        "-f", 
+        "-s", /* single threaded, before we can fix thrift thread safe issue */
         "-o", "debug",
         NULL
     };

@@ -64,12 +64,12 @@ extern "C" {
         WriteRes res;
         try {
             while (written < size){
-                signed char *buf = (signed char *)data + written;
-                vector<signed char> vec(buf, buf + size - written);
+                char *buf = (char *)data + written;
+                string str(buf, size - written);
                 arg.__set_key(path);
                 arg.__set_offset(offset + written);
                 arg.__set_len(size - written);
-                arg.__set_data(vec);
+                arg.__set_data(str);
                 client->send_write(arg);
                 //FIXME: catch exception
                 client->recv_write(res);

@@ -1,6 +1,20 @@
 var thrift = require('thrift');
-//var options = {tls: false, transport: thrift.TBufferedTransport, protocol: thrift.TBinaryProtocol};
-var options = {tls: false};
+// fix utf 8 encoding
+Buffer = require('buffer').Buffer
+TBinaryProtocol = require('thrift/lib/thrift/protocol').TBinaryProtocol
+
+TBinaryProtocol.prototype.writeString = function(str) {
+  str = new Buffer(str).toString('binary')
+  this.writeI32(str.length);
+  this.trans.write(str);
+}
+
+TBinaryProtocol.prototype.readString = function() {
+  var r = this.readBinary().toString('utf8');
+  return r;
+}
+
+var options = {tls: false, transport: thrift.TBufferedTransport, protocol: thrift.TBinaryProtocol};
 var fs = require('fs');
 
 var RPC = require('./gen-nodejs/RPC.js'),
